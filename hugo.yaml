@@ -24,3 +24,7 @@ menu:
     name: Blog
     url: /posts/
     weight: 20
+
+caches:
+  images:
+    dir: :cacheDir/images
