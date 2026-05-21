@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="dark">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Reproducing Attend-First-Consolidate-Later Paper: Freezing | Siwon Choi</title>
+<meta name="keywords" content="">
+<meta name="description" content="Attend First, Consolidate Later: On the Importance of Attention in Different LLM Layers
+The claim I tested
+This paper suggests that LLMs have a two-phase processing where the first part gathers informations, and another part consolidates that information.
+To support this claim, they consider manipulations such as inserting noise in hidden states, or freezing them.
+In this post, I test the claim that freezing the model at layer k and copying the hidden state at that layer to all continuing layers does not lead to significant performance drop.">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/2026-05-21-freezing/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/2026-05-21-freezing/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "light") {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Siwon Choi (Alt + H)">Siwon Choi</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="http://localhost:1313/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/posts/" title="Blog">
+                    <span>Blog</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Reproducing Attend-First-Consolidate-Later Paper: Freezing
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-05-21 00:00:00 +0000 UTC'>May 21, 2026</span>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><p><a href="https://arxiv.org/abs/2409.03621">Attend First, Consolidate Later: On the Importance of Attention in Different LLM Layers</a></p>
+<h3 id="the-claim-i-tested">The claim I tested<a hidden class="anchor" aria-hidden="true" href="#the-claim-i-tested">#</a></h3>
+<p>This paper suggests that LLMs have a two-phase processing where the first part gathers informations, and another part consolidates that information.
+To support this claim, they consider manipulations such as inserting noise in hidden states, or freezing them.
+In this post, I test the claim that freezing the model at layer k and copying the hidden state at that layer to all continuing layers does not lead to significant performance drop.</p>
+<h3 id="what-freezing-means">What freezing means<a hidden class="anchor" aria-hidden="true" href="#what-freezing-means">#</a></h3>
+<p>Freezing means to stop updating hidden states after k layers. The model does the attention and mlp calculation up to layer k, then we use the same hidden states after on, except for the last token. Each token&rsquo;s hidden state needs to encode everything relevant about this position for downstream use. However, at the last position, it has to produce a probability distribution of the next token, which is more specific job than being readable. This is why the last token is special, and because of this we continue the computation of hidden state for the last token.</p>
+<h3 id="what-i-did">What I did<a hidden class="anchor" aria-hidden="true" href="#what-i-did">#</a></h3>
+<p><a href="https://github.com/siwonnn/attend-first-consolidate-later/commit/9aec542b4d0a42398ae7b89e3182d160d0722300">code: implement freezing and capitals task experiment</a></p>
+<p>I set up a Llama-3.2-1b model for experiment. Using pytorch&rsquo;s <code>register_forward_pre_hook</code> function, I registered a hook on forward pass to freeze the hidden state after kth layer. For evaluation, I used a country-capital city dataset as used on the paper. The data is collected from <a href="https://github.com/samayo/country-json">country-json</a>, and I filtered datas where the capital city is a single token, leading to 57 data points. Then I ran the prediction for the capital city, given the country with the unmanipulated model and the manipulated model each. The prompt gives a one-shot example to only generate the city name without explanations.</p>
+<h3 id="the-result">The result<a hidden class="anchor" aria-hidden="true" href="#the-result">#</a></h3>
+<p><img alt="Result Plot" loading="lazy" src="/img/afcl_freeze_plot.png">
+This plot resembles that on the paper, shown in Figure 2. The curve shows that the model achieves zero accuracy till k=4, and it increases sharply from k=4 to k=7. Then it reaches the baseline accuracy from k=14. This shows a two-phase processing suggested on the paper. When the model is manipulated from the bottom layer, the accuracy is very low since the phase where it gathers information has been interrupted. But when the freezing is applied on the top part of the layers, it does not significantly undermine the performance since it is the phase where it&rsquo;s consolidating previously gathered informations. Computation in the top layers matters less than in the bottom layers.</p>
+<h3 id="thoughts-and-further-work">Thoughts and further work<a hidden class="anchor" aria-hidden="true" href="#thoughts-and-further-work">#</a></h3>
+<p>Through loading the model, inspecting its structure, and checking how the shape of matrices match, I was able to better understand for myself how transformers work internally. This was my first time implementing a paper on my own, and it feels like a good first step after learning the concepts of transformers. While doing this work, a few questions came to mind:</p>
+<ol>
+<li>Does this hold in another language? Would the critical layer differ by langauge? Korean, for instance, tokenizes very differently from English, so the information-gathering phase might behave differently.</li>
+<li>Could we schedule attention and MLP computation by layer? If information gathering mainly happens in the bottom layers, what if we computed only attention in that phase and only the MLP in the top layers? Could this cut computation cost while keeping performance?</li>
+</ol>
+<p>I plan to continue with these questions, and to implement the other manipulations from the paper.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Siwon Choi</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

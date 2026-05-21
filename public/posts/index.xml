@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Posts on Siwon Choi</title>
+    <link>http://localhost:1313/posts/</link>
+    <description>Recent content in Posts on Siwon Choi</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 21 May 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Reproducing Attend-First-Consolidate-Later Paper: Freezing</title>
+      <link>http://localhost:1313/posts/2026-05-21-freezing/</link>
+      <pubDate>Thu, 21 May 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/2026-05-21-freezing/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/abs/2409.03621&#34;&gt;Attend First, Consolidate Later: On the Importance of Attention in Different LLM Layers&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;the-claim-i-tested&#34;&gt;The claim I tested&lt;/h3&gt;
+&lt;p&gt;This paper suggests that LLMs have a two-phase processing where the first part gathers informations, and another part consolidates that information.
+To support this claim, they consider manipulations such as inserting noise in hidden states, or freezing them.
+In this post, I test the claim that freezing the model at layer k and copying the hidden state at that layer to all continuing layers does not lead to significant performance drop.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
