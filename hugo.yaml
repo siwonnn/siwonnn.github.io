@@ -28,3 +28,7 @@ menu:
 caches:
   images:
     dir: :cacheDir/images
+
+timeZone: "Asia/Seoul"
+
+cleanDestinationDir: true

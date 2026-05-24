@@ -2,17 +2,26 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Siwon Choi</title>
-    <link>http://localhost:1313/</link>
+    <link>https://example.org/</link>
     <description>Recent content on Siwon Choi</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 21 May 2026 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 25 May 2026 00:00:00 +0900</lastBuildDate>
+    <atom:link href="https://example.org/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Freezing hidden states across languages: English vs Korean in Llama-3.2-1B</title>
+      <link>https://example.org/posts/2026-05-25-freezing-en-ko/</link>
+      <pubDate>Mon, 25 May 2026 00:00:00 +0900</pubDate>
+      <guid>https://example.org/posts/2026-05-25-freezing-en-ko/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/abs/2409.03621&#34;&gt;Attend First, Consolidate Later: On the Importance of Attention in Different LLM Layers&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/siwonnn/attend-first-consolidate-later/commit/0712013ca1bad67ec06e3f21d0485ff0d34e38b2&#34;&gt;Code: add english vs korean freeze comparison and clean dataset&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Continuing on the last post, I tried to check if the model behaves differently when the prompt is given in Korean. To isolate the effect of processing Korean from the effect of producing Korean tokens, I held the answer (the capital city for each country) fixed as a single English token and varied only the prompt language.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Reproducing Attend-First-Consolidate-Later Paper: Freezing</title>
-      <link>http://localhost:1313/posts/2026-05-21-freezing/</link>
-      <pubDate>Thu, 21 May 2026 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/posts/2026-05-21-freezing/</guid>
+      <link>https://example.org/posts/2026-05-21-freezing/</link>
+      <pubDate>Thu, 21 May 2026 00:00:00 +0900</pubDate>
+      <guid>https://example.org/posts/2026-05-21-freezing/</guid>
       <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/abs/2409.03621&#34;&gt;Attend First, Consolidate Later: On the Importance of Attention in Different LLM Layers&lt;/a&gt;&lt;/p&gt;
 &lt;h3 id=&#34;the-claim-i-tested&#34;&gt;The claim I tested&lt;/h3&gt;
 &lt;p&gt;This paper suggests that LLMs have a two-phase processing where the first part gathers informations, and another part consolidates that information.

@@ -2,25 +2,25 @@
 <html lang="en" dir="auto" data-theme="dark">
 
 <head>
-	<meta name="generator" content="Hugo 0.161.1"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+	<meta name="generator" content="Hugo 0.161.1"><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="noindex, nofollow">
+<meta name="robots" content="index, follow">
 <title>Siwon Choi</title>
 
 <meta name="description" content="">
 <meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/">
+<link rel="canonical" href="https://example.org/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
-<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<link rel="icon" href="https://example.org/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://example.org/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://example.org/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://example.org/apple-touch-icon.png">
+<link rel="mask-icon" href="https://example.org/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/index.xml" title="rss">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/">
+<link rel="alternate" type="application/rss+xml" href="https://example.org/index.xml" title="rss">
+<link rel="alternate" hreflang="en" href="https://example.org/">
 <noscript>
     <style>
         #theme-toggle,
@@ -35,13 +35,34 @@
         document.querySelector("html").dataset.theme = 'light';
     }
 
+</script><meta property="og:url" content="https://example.org/">
+  <meta property="og:site_name" content="Siwon Choi">
+  <meta property="og:title" content="Siwon Choi">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="website">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Siwon Choi">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Siwon Choi",
+  "url": "https://example.org/",
+  "description": "",
+  "logo": "https://example.org/favicon.ico",
+  "sameAs": [
+      "mailto:seanchoi227@gmail.com", "https://github.com/siwonnn"
+  ]
+}
 </script>
 </head>
 <body class="list" id="top">
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="Siwon Choi (Alt + H)">Siwon Choi</a>
+            <a href="https://example.org/" accesskey="h" title="Siwon Choi (Alt + H)">Siwon Choi</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
@@ -67,12 +88,12 @@
         </div>
         <ul id="menu" class="menu">
             <li>
-                <a href="http://localhost:1313/" title="Home">
+                <a href="https://example.org/" title="Home">
                     <span class="active">Home</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/posts/" title="Blog">
+                <a href="https://example.org/posts/" title="Blog">
                     <span>Blog</span>
                 </a>
             </li>
@@ -115,6 +136,23 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Freezing hidden states across languages: English vs Korean in Llama-3.2-1B
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Attend First, Consolidate Later: On the Importance of Attention in Different LLM Layers
+Code: add english vs korean freeze comparison and clean dataset
+Continuing on the last post, I tried to check if the model behaves differently when the prompt is given in Korean. To isolate the effect of processing Korean from the effect of producing Korean tokens, I held the answer (the capital city for each country) fixed as a single English token and varied only the prompt language.
+...</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-05-25 00:00:00 +0900 KST'>May 25, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to Freezing hidden states across languages: English vs Korean in Llama-3.2-1B" href="https://example.org/posts/2026-05-25-freezing-en-ko/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Reproducing Attend-First-Consolidate-Later Paper: Freezing
     </h2>
   </header>
@@ -125,13 +163,13 @@ The claim I tested This paper suggests that LLMs have a two-phase processing whe
   </div>
   <footer class="entry-footer">
 
-<span title='2026-05-21 00:00:00 +0000 UTC'>May 21, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to Reproducing Attend-First-Consolidate-Later Paper: Freezing" href="http://localhost:1313/posts/2026-05-21-freezing/"></a>
+<span title='2026-05-21 00:00:00 +0900 KST'>May 21, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to Reproducing Attend-First-Consolidate-Later Paper: Freezing" href="https://example.org/posts/2026-05-21-freezing/"></a>
 </article>
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="http://localhost:1313/">Siwon Choi</a></span> · 
+        <span>&copy; 2026 <a href="https://example.org/">Siwon Choi</a></span> · 
 
     
     

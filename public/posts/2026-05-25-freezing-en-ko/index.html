@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="dark">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Freezing hidden states across languages: English vs Korean in Llama-3.2-1B | Siwon Choi</title>
+<meta name="keywords" content="">
+<meta name="description" content="Attend First, Consolidate Later: On the Importance of Attention in Different LLM Layers
+Code: add english vs korean freeze comparison and clean dataset
+Continuing on the last post, I tried to check if the model behaves differently when the prompt is given in Korean. To isolate the effect of processing Korean from the effect of producing Korean tokens, I held the answer (the capital city for each country) fixed as a single English token and varied only the prompt language.">
+<meta name="author" content="">
+<link rel="canonical" href="https://example.org/posts/2026-05-25-freezing-en-ko/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://example.org/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://example.org/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://example.org/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://example.org/apple-touch-icon.png">
+<link rel="mask-icon" href="https://example.org/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://example.org/posts/2026-05-25-freezing-en-ko/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "light") {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="https://example.org/posts/2026-05-25-freezing-en-ko/">
+  <meta property="og:site_name" content="Siwon Choi">
+  <meta property="og:title" content="Freezing hidden states across languages: English vs Korean in Llama-3.2-1B">
+  <meta property="og:description" content="Attend First, Consolidate Later: On the Importance of Attention in Different LLM Layers
+Code: add english vs korean freeze comparison and clean dataset
+Continuing on the last post, I tried to check if the model behaves differently when the prompt is given in Korean. To isolate the effect of processing Korean from the effect of producing Korean tokens, I held the answer (the capital city for each country) fixed as a single English token and varied only the prompt language.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-05-25T00:00:00+09:00">
+    <meta property="article:modified_time" content="2026-05-25T00:00:00+09:00">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Freezing hidden states across languages: English vs Korean in Llama-3.2-1B">
+  <meta name="twitter:description" content="Attend First, Consolidate Later: On the Importance of Attention in Different LLM Layers
+Code: add english vs korean freeze comparison and clean dataset
+Continuing on the last post, I tried to check if the model behaves differently when the prompt is given in Korean. To isolate the effect of processing Korean from the effect of producing Korean tokens, I held the answer (the capital city for each country) fixed as a single English token and varied only the prompt language.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://example.org/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Freezing hidden states across languages: English vs Korean in Llama-3.2-1B",
+      "item": "https://example.org/posts/2026-05-25-freezing-en-ko/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Freezing hidden states across languages: English vs Korean in Llama-3.2-1B",
+  "name": "Freezing hidden states across languages: English vs Korean in Llama-3.2-1B",
+  "description": "Attend First, Consolidate Later: On the Importance of Attention in Different LLM Layers\nCode: add english vs korean freeze comparison and clean dataset\nContinuing on the last post, I tried to check if the model behaves differently when the prompt is given in Korean. To isolate the effect of processing Korean from the effect of producing Korean tokens, I held the answer (the capital city for each country) fixed as a single English token and varied only the prompt language.\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "Attend First, Consolidate Later: On the Importance of Attention in Different LLM Layers\nCode: add english vs korean freeze comparison and clean dataset\nContinuing on the last post, I tried to check if the model behaves differently when the prompt is given in Korean. To isolate the effect of processing Korean from the effect of producing Korean tokens, I held the answer (the capital city for each country) fixed as a single English token and varied only the prompt language.\nI changed the prompt from Q. What is the capital of France? A. Paris Q. What is the capital of {country}? A. to 질문. 프랑스의 수도는? 답. Paris 질문. {country}의 수도는? 답. and ran the baseline model without any manipulation. The accuracy for Korean prompt was worse than the English prompt. While inspecting the data the model got wrong, I found a problem in the dataset.\nProblem 1. Dataset Quality country: Algeria | predicted: Alg | correct: Alger\rcountry: Austria | predicted: Vienna | correct: Wien\rcountry: Czech Republic | predicted: Prague | correct: Praha\rcountry: Hong Kong | predicted: Hong | correct: Victoria\rcountry: Italy | predicted: Rome | correct: Roma\raccuracy: 0.877 Above is the data that the English baseline model got incorrect. It shows that most of the incorrect predictions occur because of an endonym, exonym mismatch. The dataset has the endonym as a correct label, but the model is predicting the English exonym for the city name. We also see the model got Hong Kong wrong, but Hong Kong is not considered a country.\nTo tackle this problem, I relabeled the city names to English exonyms, removing any item whose new label isn’t a single token. Then I removed data that are not sovereign countries, such as Hong Kong, Montserrat, and Bermuda. I also excluded France from the dataset because it appears in the one-shot example, so the model can copy its answer without retrieval. We previously had 57 data points in the dataset, and after this process, we are left with 44 data points.\nThen I reran the baseline model for both English and Korean after adding the Korean name for each country. Here I found another problem in my code.\nProblem 2. Not using greedy decoding in baseline prediction The baseline accuracy was different for Korean if I ran it multiple times. This is a problem because we can’t reproduce the result, and it confounds the comparison since it makes Korean inherently noisier than English regardless of freezing.\nI resolved this problem by using argmax to predict the next token instead of using model.generate() because it uses sampling generation by default.\nBefore:\noutputs = model.generate(inputs.input_ids, max_new_tokens=1, attention_mask=inputs.attention_mask, pad_token_id=model.config.eos_token_id)\rreturn tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:]).strip() Fix:\noutputs = model(**inputs)\rlast_token_logits = outputs.logits[:, -1, :]\rpredicted_token_id = torch.argmax(last_token_logits, dim=-1)\rpredict = tokenizer.decode(predicted_token_id.squeeze())\rreturn predict.strip() Baseline accuracy After patching these two problems, the accuracy for English baseline reached 1.0 on the cleaner dataset up from 0.877 on the original, mostly because the corrected labels no longer penalize correct exonym predictions. We have 0.867 accuracy for Korean baseline, and now we have a consistent result for multiple executions. Below are the data that the Korean baseline got incorrect.\ncountry: 호주 | predicted: Melbourne | correct: Canberra\rcountry: 이스라엘 | predicted: Tel | correct: Jerusalem\rcountry: 몰디브 | predicted: Mal | correct: Male\rcountry: 세이셸 | predicted: Nou | correct: Victoria\rcountry: 스위스 | predicted: Zurich | correct: Bern\rcountry: 시리아 | predicted: Dam | correct: Damascus\raccuracy: 0.867 We can see that the incorrect predictions are not due to the endonym/exonym mismatch anymore, but the model is genuinely wrong.\nFreezing and Results Now we apply a freezing manipulation to the model, and run for both English and Korean. This time, we only use 38 data that both languages’ baseline got correct since we’re interested in the point where performance breaks as we freeze earlier and earlier, and we require correctness in both languages so that any difference between the curves reflects freezing, not a baseline knowledge gap.\nI plotted the accuracy by freeze layer k for each language, as well as the plot I drew at the last post which I regenerated after fixing the two problems above.\nI swept the freeze layer k from 0 to 15 for both English and Korean prompts, over the 38 capitals the model answered correctly in both languages at baseline, measuring single token exact-match accuracy. Both curves are flat at zero for k\u003c=4, and begin rising at k=5, showing plateau near 1.0 at high k. The curve shows that Korean lags English throughout the climb. At each k in the transition, Korean accuracy is lower. English crosses 0.5 accuracy at k=5, and Korean between k=6 and k=7.\nWe can interpret that the two-phase structure is present in both languages and starts at the same depth, but the transition is shifted about 1 layer later in Korean, suggesting that Korean context requires slightly more processing depth before previous-token representations stabilize, possibly because Korean fragments into more tokens in this tokenizer.\nLimitations and further work This experiment has clear limitations. The dataset is small (n=38), so each item is about 2.6% of the entire dataset, and the curves carry item-level noise. Single-token exact-match also constrains the dataset to capitals that are one token in English, and is a coarse metric. A natural next step is to escape both constraints with likelihood-based scoring, which measures the probability the model assigns to the correct answer rather than just its top token. This would allow multi-token capitals and a much larger dataset, reduce the item-level noise, and enable the fully Korean setting (Korean prompt and Korean answer), which the single-token method cannot handle since most Korean capitals span several tokens.\n",
+  "wordCount" : "950",
+  "inLanguage": "en",
+  "datePublished": "2026-05-25T00:00:00+09:00",
+  "dateModified": "2026-05-25T00:00:00+09:00",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://example.org/posts/2026-05-25-freezing-en-ko/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Siwon Choi",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://example.org/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://example.org/" accesskey="h" title="Siwon Choi (Alt + H)">Siwon Choi</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://example.org/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://example.org/posts/" title="Blog">
+                    <span>Blog</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Freezing hidden states across languages: English vs Korean in Llama-3.2-1B
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-05-25 00:00:00 +0900 KST'>May 25, 2026</span>
+
+</div>
+  </header> 
+  <div class="post-content md-content"><p><a href="https://arxiv.org/abs/2409.03621">Attend First, Consolidate Later: On the Importance of Attention in Different LLM Layers</a></p>
+<p><a href="https://github.com/siwonnn/attend-first-consolidate-later/commit/0712013ca1bad67ec06e3f21d0485ff0d34e38b2">Code: add english vs korean freeze comparison and clean dataset</a></p>
+<p>Continuing on the last post, I tried to check if the model behaves differently when the prompt is given in Korean. To isolate the effect of processing Korean from the effect of producing Korean tokens, I held the answer (the capital city for each country) fixed as a single English token and varied only the prompt language.</p>
+<p>I changed the prompt from <code>Q. What is the capital of France? A. Paris Q. What is the capital of {country}? A.</code> to <code>질문. 프랑스의 수도는? 답. Paris 질문. {country}의 수도는? 답.</code> and ran the baseline model without any manipulation. The accuracy for Korean prompt was worse than the English prompt. While inspecting the data the model got wrong, I found a problem in the dataset.</p>
+<h2 id="problem-1-dataset-quality">Problem 1. Dataset Quality<a hidden class="anchor" aria-hidden="true" href="#problem-1-dataset-quality">#</a></h2>
+<pre tabindex="0"><code>country: Algeria | predicted: Alg | correct: Alger
+country: Austria | predicted: Vienna | correct: Wien
+country: Czech Republic | predicted: Prague | correct: Praha
+country: Hong Kong | predicted: Hong | correct: Victoria
+country: Italy | predicted: Rome | correct: Roma
+accuracy: 0.877
+</code></pre><p>Above is the data that the English baseline model got incorrect. It shows that most of the incorrect predictions occur because of an endonym, exonym mismatch. The dataset has the endonym as a correct label, but the model is predicting the English exonym for the city name. We also see the model got Hong Kong wrong, but Hong Kong is not considered a country.</p>
+<p>To tackle this problem, I relabeled the city names to English exonyms, removing any item whose new label isn&rsquo;t a single token. Then I removed data that are not sovereign countries, such as Hong Kong, Montserrat, and Bermuda. I also excluded France from the dataset because it appears in the one-shot example, so the model can copy its answer without retrieval. We previously had 57 data points in the dataset, and after this process, we are left with 44 data points.</p>
+<p>Then I reran the baseline model for both English and Korean after adding the Korean name for each country. Here I found another problem in my code.</p>
+<h2 id="problem-2-not-using-greedy-decoding-in-baseline-prediction">Problem 2. Not using greedy decoding in baseline prediction<a hidden class="anchor" aria-hidden="true" href="#problem-2-not-using-greedy-decoding-in-baseline-prediction">#</a></h2>
+<p>The baseline accuracy was different for Korean if I ran it multiple times. This is a problem because we can&rsquo;t reproduce the result, and it confounds the comparison since it makes Korean inherently noisier than English regardless of freezing.</p>
+<p>I resolved this problem by using <code>argmax</code> to predict the next token instead of using <code>model.generate()</code> because it uses sampling generation by default.</p>
+<p>Before:</p>
+<pre tabindex="0"><code>outputs = model.generate(inputs.input_ids, max_new_tokens=1, attention_mask=inputs.attention_mask, pad_token_id=model.config.eos_token_id)
+return tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:]).strip()
+</code></pre><p>Fix:</p>
+<pre tabindex="0"><code>outputs = model(**inputs)
+last_token_logits = outputs.logits[:, -1, :]
+predicted_token_id = torch.argmax(last_token_logits, dim=-1)
+predict = tokenizer.decode(predicted_token_id.squeeze())
+return predict.strip()
+</code></pre><h2 id="baseline-accuracy">Baseline accuracy<a hidden class="anchor" aria-hidden="true" href="#baseline-accuracy">#</a></h2>
+<p>After patching these two problems, the accuracy for English baseline reached 1.0 on the cleaner dataset up from 0.877 on the original, mostly because the corrected labels no longer penalize correct exonym predictions. We have 0.867 accuracy for Korean baseline, and now we have a consistent result for multiple executions. Below are the data that the Korean baseline got incorrect.</p>
+<pre tabindex="0"><code>country: 호주 | predicted: Melbourne | correct: Canberra
+country: 이스라엘 | predicted: Tel | correct: Jerusalem
+country: 몰디브 | predicted: Mal | correct: Male
+country: 세이셸 | predicted: Nou | correct: Victoria
+country: 스위스 | predicted: Zurich | correct: Bern
+country: 시리아 | predicted: Dam | correct: Damascus
+accuracy: 0.867
+</code></pre><p>We can see that the incorrect predictions are not due to the endonym/exonym mismatch anymore, but the model is genuinely wrong.</p>
+<h2 id="freezing-and-results">Freezing and Results<a hidden class="anchor" aria-hidden="true" href="#freezing-and-results">#</a></h2>
+<p>Now we apply a freezing manipulation to the model, and run for both English and Korean. This time, we only use 38 data that both languages&rsquo; baseline got correct since we&rsquo;re interested in the point where performance breaks as we freeze earlier and earlier, and we require correctness in both languages so that any difference between the curves reflects freezing, not a baseline knowledge gap.</p>
+<p>I plotted the accuracy by freeze layer k for each language, as well as the plot I drew at the last post which I regenerated after fixing the two problems above.</p>
+<p><img alt="Freeze Plot" loading="lazy" src="/posts/2026-05-25-freezing-en-ko/freeze_plot.png"></p>
+<p><img alt="English Korean Comparison" loading="lazy" src="/posts/2026-05-25-freezing-en-ko/en_ko_comparison_plot.png"></p>
+<p>I swept the freeze layer k from 0 to 15 for both English and Korean prompts, over the 38 capitals the model answered correctly in both languages at baseline, measuring single token exact-match accuracy. Both curves are flat at zero for k&lt;=4, and begin rising at k=5, showing plateau near 1.0 at high k. The curve shows that Korean lags English throughout the climb. At each k in the transition, Korean accuracy is lower. English crosses 0.5 accuracy at k=5, and Korean between k=6 and k=7.</p>
+<p>We can interpret that the two-phase structure is present in both languages and starts at the same depth, but the transition is shifted about 1 layer later in Korean, suggesting that Korean context requires slightly more processing depth before previous-token representations stabilize, possibly because Korean fragments into more tokens in this tokenizer.</p>
+<h2 id="limitations-and-further-work">Limitations and further work<a hidden class="anchor" aria-hidden="true" href="#limitations-and-further-work">#</a></h2>
+<p>This experiment has clear limitations. The dataset is small (n=38), so each item is about 2.6% of the entire dataset, and the curves carry item-level noise. Single-token exact-match also constrains the dataset to capitals that are one token in English, and is a coarse metric. A natural next step is to escape both constraints with likelihood-based scoring, which measures the probability the model assigns to the correct answer rather than just its top token. This would allow multi-token capitals and a much larger dataset, reduce the item-level noise, and enable the fully Korean setting (Korean prompt and Korean answer), which the single-token method cannot handle since most Korean capitals span several tokens.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://example.org/">Siwon Choi</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

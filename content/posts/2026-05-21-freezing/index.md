@@ -20,7 +20,7 @@ Freezing means to stop updating hidden states after k layers. The model does the
 I set up a Llama-3.2-1b model for experiment. Using pytorch's `register_forward_pre_hook` function, I registered a hook on forward pass to freeze the hidden state after kth layer. For evaluation, I used a country-capital city dataset as used on the paper. The data is collected from [country-json](https://github.com/samayo/country-json), and I filtered datas where the capital city is a single token, leading to 57 data points. Then I ran the prediction for the capital city, given the country with the unmanipulated model and the manipulated model each. The prompt gives a one-shot example to only generate the city name without explanations.
 
 ### The result
-![Result Plot](/img/afcl_freeze_plot.png)
+![Result Plot](afcl_freeze_plot.png)
 This plot resembles that on the paper, shown in Figure 2. The curve shows that the model achieves zero accuracy till k=4, and it increases sharply from k=4 to k=7. Then it reaches the baseline accuracy from k=14. This shows a two-phase processing suggested on the paper. When the model is manipulated from the bottom layer, the accuracy is very low since the phase where it gathers information has been interrupted. But when the freezing is applied on the top part of the layers, it does not significantly undermine the performance since it is the phase where it's consolidating previously gathered informations. Computation in the top layers matters less than in the bottom layers.
 
 ### Thoughts and further work
